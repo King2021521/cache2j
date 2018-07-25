@@ -61,7 +61,7 @@ public class Log {
     }
 
     private void print(String message, Level level) {
-        System.out.println(getDateString() + " " + "[" + Thread.currentThread().getName() + "]" + " " + level + " " + type.getName() + " - " + message);
+        System.out.println(getDateString() + " " + "[" + Thread.currentThread().getName() + "-" + Thread.currentThread().getId() + "]" + " " + level + " " + type.getName() + " - " + message);
     }
 
     enum Level {
