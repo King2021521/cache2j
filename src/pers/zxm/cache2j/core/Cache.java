@@ -1,6 +1,6 @@
 package pers.zxm.cache2j.core;
 
-import pers.zxm.cache2j.common.Log;
+import pers.zxm.cache2j.Log2j;
 import pers.zxm.cache2j.listener.CacheListener;
 import pers.zxm.cache2j.listener.Payload;
 import pers.zxm.cache2j.monitor.Monitor;
@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Cache<K, V> extends AbstractCache<K, V> {
-    private static Log logger = Log.newInstance(Cache.class);
+    private static Log2j logger = Log2j.newInstance(Cache.class);
 
     private final ReentrantLock lock = new ReentrantLock();
     private final CopyOnWriteArrayList<CacheListener<K, V>> listeners;

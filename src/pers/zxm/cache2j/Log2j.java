@@ -1,4 +1,4 @@
-package pers.zxm.cache2j.common;
+package pers.zxm.cache2j;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -8,21 +8,21 @@ import java.util.Date;
  * @Description
  * @Date Create in 下午 2:03 2018/7/25 0025
  */
-public class Log {
+public class Log2j {
     private static final String FILTER_MARK = "{}";
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss,SSS";
 
     private Class type;
 
-    private Log() {
+    private Log2j() {
     }
 
-    private Log(Class type) {
+    private Log2j(Class type) {
         this.type = type;
     }
 
-    public static Log newInstance(Class type) {
-        return new Log(type);
+    public static Log2j newInstance(Class type) {
+        return new Log2j(type);
     }
 
     public void info(String message) {
