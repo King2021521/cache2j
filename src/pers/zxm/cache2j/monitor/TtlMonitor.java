@@ -4,6 +4,7 @@ import pers.zxm.cache2j.core.CacheObject;
 import pers.zxm.cache2j.core.Cache;
 import pers.zxm.cache2j.listener.CacheListener;
 import pers.zxm.cache2j.listener.Payload;
+import pers.zxm.cache2j.persistence.MessageQueue;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -35,6 +36,8 @@ public class TtlMonitor<K, V> implements Monitor, Runnable {
 
     private CopyOnWriteArrayList<CacheListener<K, V>> listeners;
 
+    private MessageQueue messageQueue;
+
     /**
      * Creates a new instance of monitor.
      */
@@ -44,6 +47,8 @@ public class TtlMonitor<K, V> implements Monitor, Runnable {
 
         this.ttl = cache.getCacheBuilder().getTtl();
         this.expirationIntervalMillis = cache.getCacheBuilder().getInterval();
+
+        this.messageQueue = cache.getQueue();
 
         workerThread = new Thread(this, "CacheTtlMonitor");
         workerThread.setDaemon(true);
@@ -76,6 +81,10 @@ public class TtlMonitor<K, V> implements Monitor, Runnable {
 
             if (timeIdle >= ttl) {
                 delegate.remove(o.getKey());
+
+                if(this.messageQueue != null){
+                    messageQueue.remove(o.getKey());
+                }
 
                 for (CacheListener<K, V> listener : listeners) {
                     listener.callback(new Payload<>(o.getKey(), o.getValue(), o.getInitializationTime()));

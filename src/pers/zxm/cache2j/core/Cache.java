@@ -1,15 +1,22 @@
 package pers.zxm.cache2j.core;
 
 import pers.zxm.cache2j.Log2j;
+import pers.zxm.cache2j.common.Constant;
 import pers.zxm.cache2j.listener.CacheListener;
 import pers.zxm.cache2j.listener.Payload;
 import pers.zxm.cache2j.monitor.Monitor;
 import pers.zxm.cache2j.LoadingFailException;
 import pers.zxm.cache2j.Stats;
 import pers.zxm.cache2j.UnCheckNullException;
+import pers.zxm.cache2j.persistence.FlushDiskProcessor;
+import pers.zxm.cache2j.persistence.MessageQueue;
+import pers.zxm.cache2j.persistence.Operation;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -21,6 +28,9 @@ public class Cache<K, V> extends AbstractCache<K, V> {
     private Monitor monitor;
     private CacheLoader<? super K, V> loader;
     private Stats stats;
+
+    private MessageQueue queue;
+    private FlushDiskProcessor flushDiskProcessor;
 
     private Long ttl;
     private Long interval;
@@ -47,8 +57,21 @@ public class Cache<K, V> extends AbstractCache<K, V> {
         this.maximum = builder.getMaximum();
         this.factor = builder.getFactor();
 
+        initCache(builder);
+    }
+
+    private void initCache(CacheBuilder<? super K, ? super V> builder) {
         if (builder.getListener() != null) {
             listeners.add(builder.getListener());
+        }
+
+        if (builder.getEnableFlushDisk()) {
+            if (null == builder.getPath()) {
+                throw new UnCheckNullException("dump path may be not null");
+            }
+
+            this.queue = new MessageQueue();
+            this.flushDiskProcessor = newProcessor(builder.getProcessorType().type());
         }
 
         this.monitor = builder.getType() == null ? null : newInstance(builder.getType().getType());
@@ -121,6 +144,11 @@ public class Cache<K, V> extends AbstractCache<K, V> {
 
     private V doPut(K key, V value) {
         CacheObject<K, V> answer = delegate.put(key, new CacheObject<>(key, value, System.currentTimeMillis(), System.currentTimeMillis()));
+
+        if (this.queue != null) {
+            this.queue.insert(key, value);
+        }
+
         if (answer == null) {
             return null;
         }
@@ -161,6 +189,10 @@ public class Cache<K, V> extends AbstractCache<K, V> {
         return this.delegate;
     }
 
+    public MessageQueue getQueue() {
+        return this.queue;
+    }
+
     @Override
     public int hashCode() {
         return delegate.hashCode();
@@ -172,8 +204,16 @@ public class Cache<K, V> extends AbstractCache<K, V> {
     }
 
     private <T extends Monitor> T newInstance(Class<T> type) {
+        return reflect(type);
+    }
+
+    private <T extends FlushDiskProcessor> T newProcessor(Class<T> type) {
+        return reflect(type);
+    }
+
+    private <T> T reflect(Class<T> clazz) {
         try {
-            return type.getConstructor(Cache.class).newInstance(this);
+            return clazz.getConstructor(Cache.class).newInstance(this);
         } catch (InstantiationException e) {
             logger.error(e.getMessage());
         } catch (IllegalAccessException e) {
@@ -203,11 +243,13 @@ public class Cache<K, V> extends AbstractCache<K, V> {
                     }
 
                     delegate.remove(key);
+                    if (this.queue != null) {
+                        this.queue.remove(key);
+                    }
                 }
             }
         } finally {
             lock.unlock();
         }
-
     }
 }

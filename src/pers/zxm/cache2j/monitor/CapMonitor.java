@@ -1,15 +1,16 @@
 package pers.zxm.cache2j.monitor;
 
+import pers.zxm.cache2j.common.Constant;
 import pers.zxm.cache2j.core.Cache;
 import pers.zxm.cache2j.core.CacheObject;
 import pers.zxm.cache2j.listener.CacheListener;
 import pers.zxm.cache2j.listener.Payload;
+import pers.zxm.cache2j.persistence.MessageQueue;
+import pers.zxm.cache2j.persistence.Operation;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -45,6 +46,8 @@ public class CapMonitor<K, V> implements Monitor, Runnable {
 
     private CopyOnWriteArrayList<CacheListener<K, V>> listeners;
 
+    private MessageQueue messageQueue;
+
     public CapMonitor(Cache<K, V> cache) {
         this.delegate = cache.getDelegate();
         this.listeners = cache.getListeners();
@@ -52,6 +55,8 @@ public class CapMonitor<K, V> implements Monitor, Runnable {
         this.maximum = cache.getCacheBuilder().getMaximum();
         this.clearFactor = cache.getCacheBuilder().getFactor();
         this.expirationIntervalMillis = cache.getCacheBuilder().getInterval();
+
+        this.messageQueue = cache.getQueue();
 
         workerThread = new Thread(this, "CacheCapMonitor");
         workerThread.setDaemon(true);
@@ -93,6 +98,9 @@ public class CapMonitor<K, V> implements Monitor, Runnable {
                 }
 
                 delegate.remove(v);
+                if(this.messageQueue != null){
+                    this.messageQueue.remove(v);
+                }
                 count++;
             }
         }
