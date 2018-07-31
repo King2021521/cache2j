@@ -1,7 +1,6 @@
 package pers.zxm.cache2j.core;
 
-import pers.zxm.cache2j.Log2j;
-import pers.zxm.cache2j.common.Constant;
+import pers.zxm.cache2j.Logger;
 import pers.zxm.cache2j.listener.CacheListener;
 import pers.zxm.cache2j.listener.Payload;
 import pers.zxm.cache2j.monitor.Monitor;
@@ -9,19 +8,17 @@ import pers.zxm.cache2j.LoadingFailException;
 import pers.zxm.cache2j.Stats;
 import pers.zxm.cache2j.UnCheckNullException;
 import pers.zxm.cache2j.persistence.FlushDiskProcessor;
+import pers.zxm.cache2j.persistence.LoadProcessor;
 import pers.zxm.cache2j.persistence.MessageQueue;
-import pers.zxm.cache2j.persistence.Operation;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Cache<K, V> extends AbstractCache<K, V> {
-    private static Log2j logger = Log2j.newInstance(Cache.class);
+    private static Logger logger = Logger.newInstance(Cache.class);
 
     private final ReentrantLock lock = new ReentrantLock();
     private final CopyOnWriteArrayList<CacheListener<K, V>> listeners;
@@ -72,6 +69,11 @@ public class Cache<K, V> extends AbstractCache<K, V> {
 
             this.queue = new MessageQueue();
             this.flushDiskProcessor = newProcessor(builder.getProcessorType().type());
+
+            Map initialization = LoadProcessor.read(builder.getPath());
+            if(null != initialization){
+                this.delegate.putAll(initialization);
+            }
         }
 
         this.monitor = builder.getType() == null ? null : newInstance(builder.getType().getType());
@@ -146,7 +148,7 @@ public class Cache<K, V> extends AbstractCache<K, V> {
         CacheObject<K, V> answer = delegate.put(key, new CacheObject<>(key, value, System.currentTimeMillis(), System.currentTimeMillis()));
 
         if (this.queue != null) {
-            this.queue.insert(key, value);
+            this.queue.add(key, value);
         }
 
         if (answer == null) {

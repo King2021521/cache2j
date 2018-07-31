@@ -8,21 +8,21 @@ import java.util.Date;
  * @Description
  * @Date Create in 下午 2:03 2018/7/25 0025
  */
-public class Log2j {
+public class Logger {
     private static final String FILTER_MARK = "{}";
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss,SSS";
 
     private Class type;
 
-    private Log2j() {
+    private Logger() {
     }
 
-    private Log2j(Class type) {
+    private Logger(Class type) {
         this.type = type;
     }
 
-    public static Log2j newInstance(Class type) {
-        return new Log2j(type);
+    public static Logger newInstance(Class type) {
+        return new Logger(type);
     }
 
     public void info(String message) {

@@ -22,7 +22,7 @@ public class MessageQueue {
         this.queue.add(opertion);
     }
 
-    public void insert(Object key, Object value){
+    public void add(Object key, Object value){
         Map operation = new HashMap();
         operation.put(Constant.OPERATION_KEY, Operation.INSERT.name());
         operation.put(Constant.KEY_NAME, key);
