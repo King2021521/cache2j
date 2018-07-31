@@ -6,7 +6,7 @@ package pers.zxm.cache2j.persistence;
  * @Date Create in 上午 10:44 2018/7/26 0026
  */
 public enum ProcessorType {
-    ASYNCHRONOUS(AsynchronousFlushProcessor.class);
+    FOS(FOSBackupProcessor.class);
 
     private Class processorType;
 

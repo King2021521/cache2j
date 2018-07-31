@@ -18,7 +18,7 @@ import static pers.zxm.cache2j.common.Constant.VALUE_NAME;
  * @Description 异步刷盘
  * @Date Create in 上午 9:45 2018/7/26 0026
  */
-public class AsynchronousFlushProcessor<K, V> implements FlushDiskProcessor {
+public class FOSBackupProcessor<K, V> implements FlushDiskProcessor {
     private ConcurrentHashMap storage;
 
     private MessageQueue messageQueue;
@@ -29,13 +29,13 @@ public class AsynchronousFlushProcessor<K, V> implements FlushDiskProcessor {
     private static final long INTERVAL_MILLS = 60 * 1000;
     private static final int DEFAULT_INIT_CAPACITY = 10000;
 
-    public <K extends Object, V extends Object> AsynchronousFlushProcessor(Cache<K, V> cache) {
+    public <K extends Object, V extends Object> FOSBackupProcessor(Cache<K, V> cache) {
         this.messageQueue = cache.getQueue();
         this.storage = new ConcurrentHashMap<>(DEFAULT_INIT_CAPACITY);
 
         this.flushPath = cache.getCacheBuilder().getPath();
 
-        workerThread = new Thread(this, "AsynchronousFlushProcessor");
+        workerThread = new Thread(this, "FOSBackupProcessor");
         workerThread.setDaemon(true);
         workerThread.start();
     }

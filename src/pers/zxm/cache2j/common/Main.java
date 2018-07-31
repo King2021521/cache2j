@@ -20,7 +20,7 @@ public class Main {
                 .maximum(1000)
                 .monitor(MonitorType.CAP)
                 .stats()
-                .flushProcessor(ProcessorType.ASYNCHRONOUS)
+                .flushProcessor(ProcessorType.FOS)
                 .path("D:\\cache2j.txt")
                 .enableFlushDsk(true)
                 .build(new CacheLoader<String, Object>() {

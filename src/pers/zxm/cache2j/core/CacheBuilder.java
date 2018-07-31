@@ -20,7 +20,7 @@ public final class CacheBuilder<K, V> {
     private MonitorType type;
     private Stats stats;
 
-    private ProcessorType processorType = ProcessorType.ASYNCHRONOUS;
+    private ProcessorType processorType = ProcessorType.FOS;
     private Boolean enableFlushDisk = false;
     private String path;
 
@@ -81,7 +81,7 @@ public final class CacheBuilder<K, V> {
     }
 
     public CacheBuilder<K, V> flushProcessor() {
-        this.processorType = ProcessorType.ASYNCHRONOUS;
+        this.processorType = ProcessorType.FOS;
         return this;
     }
 
