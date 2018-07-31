@@ -13,6 +13,7 @@ import pers.zxm.cache2j.persistence.MessageQueue;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
@@ -70,13 +71,20 @@ public class Cache<K, V> extends AbstractCache<K, V> {
             this.queue = new MessageQueue();
             this.flushDiskProcessor = newProcessor(builder.getProcessorType().type());
 
-            Map initialization = LoadProcessor.read(builder.getPath());
-            if(null != initialization){
-                this.delegate.putAll(initialization);
+            Map bak = LoadProcessor.read(builder.getPath());
+            if (null != bak && !bak.isEmpty()) {
+                loading(bak);
             }
         }
 
         this.monitor = builder.getType() == null ? null : newInstance(builder.getType().getType());
+    }
+
+    private void loading(Map bak) {
+        Set<K> keys = bak.keySet();
+        for (K key : keys) {
+            doPut(key, (V) bak.get(key));
+        }
     }
 
     /**

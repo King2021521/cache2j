@@ -30,7 +30,7 @@ public class Main {
                     }
                 });
         System.out.println(cache.size());
-        /*logger.info("开始写入缓存");
+        logger.info("开始写入缓存");
         for (int i = 0; i < 1010; i++) {
             cache.put("key" + i, "value" + i);
             Thread.sleep(5);
@@ -43,7 +43,7 @@ public class Main {
         }
         logger.info(cache.stats());
 
-        Thread.sleep(70 * 1000);*/
+        Thread.sleep(70*1000);
     }
 
 }
