@@ -6,12 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static pers.zxm.cache2j.common.Constant.KEY_NAME;
-import static pers.zxm.cache2j.common.Constant.OPERATION_KEY;
-import static pers.zxm.cache2j.common.Constant.VALUE_NAME;
 
 /**
  * @Author zxm
@@ -57,14 +52,14 @@ public class FOSBackupProcessor<K, V> implements FlushDiskProcessor {
 
     private void preFlush() {
         while (!messageQueue.isEmpty()) {
-            Map element = messageQueue.poll();
+            Message<K,V> element = messageQueue.poll();
 
-            if (element.get(OPERATION_KEY).equals(Operation.INSERT.name())) {
-                storage.put(element.get(KEY_NAME), element.get(VALUE_NAME));
+            if (Operation.INSERT.equals(element.getOperation())) {
+                storage.put(element.getKey(), element.getValue());
             }
 
-            if (element.get(OPERATION_KEY).equals(Operation.REMOVE.name())) {
-                storage.remove(element.get(KEY_NAME));
+            if (Operation.REMOVE.equals(element.getOperation())) {
+                storage.remove(element.getKey());
             }
         }
     }

@@ -1,16 +1,13 @@
 package pers.zxm.cache2j.monitor;
 
-import pers.zxm.cache2j.common.Constant;
 import pers.zxm.cache2j.core.Cache;
 import pers.zxm.cache2j.core.CacheObject;
 import pers.zxm.cache2j.listener.CacheListener;
 import pers.zxm.cache2j.listener.Payload;
 import pers.zxm.cache2j.persistence.MessageQueue;
-import pers.zxm.cache2j.persistence.Operation;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;

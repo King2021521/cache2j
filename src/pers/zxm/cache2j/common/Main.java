@@ -8,11 +8,15 @@ import pers.zxm.cache2j.monitor.MonitorType;
 import pers.zxm.cache2j.core.CacheBuilder;
 import pers.zxm.cache2j.persistence.ProcessorType;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+
 public class Main {
     public static Logger logger = Logger.newInstance(Main.class);
 
     public static void main(String[] args) throws Exception {
-        Cache<String, Object> cache = CacheBuilder.newBuilder()
+        /*Cache<String, Object> cache = CacheBuilder.newBuilder()
                 .listener(new DefaultListener())
                 .factor(0.1)
                 .interval(1000)
@@ -43,7 +47,7 @@ public class Main {
         }
         logger.info(cache.stats());
 
-        Thread.sleep(70*1000);
+        Thread.sleep(70*1000);*/
     }
 
 }
