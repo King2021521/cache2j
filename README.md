@@ -5,7 +5,7 @@
 3、提供了缓存监听器供用户实现并注册（缓存被淘汰时会回调监听器的`callback`方法）；  
 4、支持缓存过期自动加载/更新机制（实现`CacheLoader`）；  
 5、支持缓存命中率相关统计（`cacheBuilder.stats()`）；  
-6、支持持久化，持久化方式为定时全量快照备份，类似redis的RDB；
+6、支持持久化，持久化方式为定时全量快照备份（FOS），类似redis的RDB；
 
 `cache2j` VS `guava cache`：  
 1、底层实现：  
