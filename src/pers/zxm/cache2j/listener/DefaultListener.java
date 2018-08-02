@@ -7,6 +7,6 @@ public class DefaultListener implements CacheListener<String,Object> {
 
     @Override
     public void callback(Payload<String, Object> payload) {
-        //logger.info(payload.toString());
+        logger.info(payload.toString());
     }
 }
