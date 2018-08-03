@@ -7,16 +7,33 @@ import pers.zxm.cache2j.listener.DefaultListener;
 import pers.zxm.cache2j.monitor.MonitorType;
 import pers.zxm.cache2j.core.CacheBuilder;
 import pers.zxm.cache2j.persistence.ProcessorType;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
+import pers.zxm.cache2j.subscribe.*;
 
 public class Main {
     public static Logger logger = Logger.newInstance(Main.class);
 
     public static void main(String[] args) throws Exception {
-        /*Cache<String, Object> cache = CacheBuilder.newBuilder()
+        testPublishAndSubscribe();
+    }
+
+    public static void testPublishAndSubscribe() throws Exception{
+        Channel<String> channel = NonBlockingChannel.initChannel()
+                .subscribeOne(new DefaultConsumer())
+                .enable();
+
+        for (int i = 0; i < 100; i++) {
+            Message<String> message = new Message<>();
+            message.setTag("test");
+            message.setTimestamp(System.currentTimeMillis());
+            message.setPayload("test publish message "+ i);
+            channel.publish(message);
+
+            Thread.sleep((long)(Math.random()*1000));
+        }
+    }
+
+    public static void testCache() throws Exception {
+        Cache<String, Object> cache = CacheBuilder.newBuilder()
                 .listener(new DefaultListener())
                 .factor(0.1)
                 .interval(1000)
@@ -47,7 +64,7 @@ public class Main {
         }
         logger.info(cache.stats());
 
-        Thread.sleep(70*1000);*/
+        Thread.sleep(70 * 1000);
     }
 
 }

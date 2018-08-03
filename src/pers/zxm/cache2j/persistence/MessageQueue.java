@@ -8,34 +8,34 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @Date Create in 上午 9:51 2018/7/27 0027
  */
 public class MessageQueue<K,V> {
-    private ConcurrentLinkedQueue<Message<K,V>> queue;
+    private ConcurrentLinkedQueue<OperateMessage<K,V>> queue;
 
     public MessageQueue(){
         this.queue = new ConcurrentLinkedQueue<>();
     }
 
-    public void add(Message message){
-        this.queue.add(message);
+    public void add(OperateMessage operateMessage){
+        this.queue.add(operateMessage);
     }
 
     public void add(K key, V value){
-        Message<K,V> message = Message.newInstance()
+        OperateMessage<K,V> operateMessage = OperateMessage.newInstance()
         .operate(Operation.INSERT)
         .key(key)
         .value(value);
 
-        this.add(message);
+        this.add(operateMessage);
     }
 
     public void remove(Object key){
-        Message<K,V> message = Message.newInstance()
+        OperateMessage<K,V> operateMessage = OperateMessage.newInstance()
         .operate(Operation.REMOVE)
         .key(key);
 
-        this.add(message);
+        this.add(operateMessage);
     }
 
-    public Message<K, V> poll(){
+    public OperateMessage<K, V> poll(){
         return this.queue.poll();
     }
 

@@ -7,31 +7,31 @@ import java.util.Objects;
  * @Description
  * @Date Create in 下午 1:53 2018/8/2 0002
  */
-public class Message<K,V> {
+public class OperateMessage<K,V> {
     private Operation operation;
     private K key;
     private V value;
 
-    private Message() {
+    private OperateMessage() {
     }
 
-    public Message<K,V> operate(Operation operation){
+    public OperateMessage<K,V> operate(Operation operation){
         this.operation = operation;
         return this;
     }
 
-    public Message<K,V> key(K key){
+    public OperateMessage<K,V> key(K key){
         this.key = key;
         return this;
     }
 
-    public Message<K,V> value(V value){
+    public OperateMessage<K,V> value(V value){
         this.value = value;
         return this;
     }
 
-    public static Message newInstance(){
-        return new Message();
+    public static OperateMessage newInstance(){
+        return new OperateMessage();
     }
 
     public Operation getOperation() {
@@ -50,10 +50,10 @@ public class Message<K,V> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Message<?, ?> message = (Message<?, ?>) o;
-        return operation == message.operation &&
-                Objects.equals(key, message.key) &&
-                Objects.equals(value, message.value);
+        OperateMessage<?, ?> operateMessage = (OperateMessage<?, ?>) o;
+        return operation == operateMessage.operation &&
+                Objects.equals(key, operateMessage.key) &&
+                Objects.equals(value, operateMessage.value);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class Message<K,V> {
 
     @Override
     public String toString() {
-        return "Message{" +
+        return "OperateMessage{" +
                 "operation=" + operation +
                 ", key=" + key +
                 ", value=" + value +

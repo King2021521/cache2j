@@ -52,7 +52,7 @@ public class FOSBackupProcessor<K, V> implements FlushDiskProcessor {
 
     private void preFlush() {
         while (!messageQueue.isEmpty()) {
-            Message<K,V> element = messageQueue.poll();
+            OperateMessage<K,V> element = messageQueue.poll();
 
             if (Operation.INSERT.equals(element.getOperation())) {
                 storage.put(element.getKey(), element.getValue());
