@@ -6,6 +6,7 @@
 4、支持缓存过期自动加载/更新机制（实现`CacheLoader`）；  
 5、支持缓存命中率相关统计（`cacheBuilder.stats()`）；  
 6、支持持久化，持久化方式为定时全量快照备份（FOS），类似redis的RDB；
+7、支持发布订阅机制（新增），声明一个Channel，设置其订阅者，发布消息时，即可广播到所有订阅者；
 
 `cache2j` VS `guava cache`：  
 1、底层实现：  
