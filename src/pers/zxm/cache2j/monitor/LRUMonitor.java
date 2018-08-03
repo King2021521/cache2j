@@ -16,12 +16,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * A cache monitor base on maximum capacity{@link Cache}
  * 当缓存中对象的数量大于用户设置的某个阈值（maximum）时，内部执行淘汰缓存的线程开始执行淘汰数据，具体的策略是:
  * 根据缓存对象的LastAccessTime做排序，淘汰最近使用频率最低的 maximum*factor+totalSize-maximum个对象。
+ * 即LRU淘汰策略
  * @param <K>
  * @param <V>
  * @author zxm
  * @since 2018-01-26
  */
-public class CapMonitor<K, V> implements Monitor, Runnable {
+public class LRUMonitor<K, V> implements Monitor, Runnable {
     private final ReadWriteLock stateLock = new ReentrantReadWriteLock();
 
     /**
@@ -45,7 +46,7 @@ public class CapMonitor<K, V> implements Monitor, Runnable {
 
     private MessageQueue messageQueue;
 
-    public CapMonitor(Cache<K, V> cache) {
+    public LRUMonitor(Cache<K, V> cache) {
         this.delegate = cache.getDelegate();
         this.listeners = cache.getListeners();
 

@@ -3,7 +3,7 @@ package pers.zxm.cache2j.monitor;
 public enum MonitorType {
     TTL(TtlMonitor.class),
 
-    CAP(CapMonitor.class);
+    LRU(LRUMonitor.class);
 
     private Class type;
 

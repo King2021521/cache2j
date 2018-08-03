@@ -22,7 +22,7 @@ public class Main {
                 .interval(1000)
                 .ttl(5000)
                 .maximum(1000)
-                .monitor(MonitorType.CAP)
+                .monitor(MonitorType.LRU)
                 .stats()
                 .flushProcessor(ProcessorType.FOS)
                 .path("D:\\cache2j.txt")
