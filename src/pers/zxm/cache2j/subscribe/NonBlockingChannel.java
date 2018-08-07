@@ -1,9 +1,5 @@
 package pers.zxm.cache2j.subscribe;
 
-import pers.zxm.cache2j.common.Assert;
-
-import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -12,27 +8,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @Date Create in 上午 11:27 2018/8/3 0003
  */
 public class NonBlockingChannel<T> implements Channel<T> {
-    private final CopyOnWriteArrayList<Consumer<T>> subscribers;
+    private Binding<T> binding;
+    private final CopyOnWriteArrayList<Subscriber<T>> subscribers;
     private final NonBlockingQueue<T> nonBlockingQueue;
     private DaemonWorker<T> worker;
 
-    private NonBlockingChannel() {
-        this.subscribers = new CopyOnWriteArrayList<>();
-        this.nonBlockingQueue = new NonBlockingQueue<>();
+    private NonBlockingChannel(Binding<T> binding) {
+        this.subscribers = binding.getSubscribers();
+        this.nonBlockingQueue = binding.getPublisher().getNonBlockingQueue();
     }
 
-    public static NonBlockingChannel initChannel() {
-        return new NonBlockingChannel();
-    }
-
-    public NonBlockingChannel<T> subscribeOne(Consumer consumer) {
-        this.subscribe(consumer);
-        return this;
-    }
-
-    public NonBlockingChannel<T> subscribeMany(List<Consumer> consumers) {
-        this.subscribeBatch(consumers);
-        return this;
+    public static NonBlockingChannel initChannel(Binding binding) {
+        return new NonBlockingChannel(binding);
     }
 
     public NonBlockingChannel<T> enable() {
@@ -41,37 +28,12 @@ public class NonBlockingChannel<T> implements Channel<T> {
         return this;
     }
 
-    @Override
-    public boolean publish(Message<T> message) {
-        if (Assert.notNull(message)) {
-            if (null == message.getMessageId()) {
-                message.setMessageId(createMessageId());
-            }
-
-            return nonBlockingQueue.add(message);
-        }
-        return false;
+    public Binding<T> getBinding() {
+        return binding;
     }
 
-    @Override
-    public void subscribe(Consumer consumer) {
-        if (null != consumer) {
-            this.subscribers.add(consumer);
-        }
-    }
-
-    @Override
-    public void subscribeBatch(List<Consumer> consumers) {
-        consumers.stream().filter(Assert::notNull).forEach(consumer -> subscribers.add(consumer));
-    }
-
-    @Override
-    public boolean cancelSubcribe(Consumer consumer) {
-        return subscribers.remove(consumer);
-    }
-
-    private String createMessageId(){
-        return UUID.randomUUID().toString().replace("-", "");
+    public void setBinding(Binding<T> binding) {
+        this.binding = binding;
     }
 
     /**
@@ -82,10 +44,10 @@ public class NonBlockingChannel<T> implements Channel<T> {
 
         private Thread workerThread;
 
-        private final CopyOnWriteArrayList<Consumer<T>> subscribers;
+        private final CopyOnWriteArrayList<Subscriber<T>> subscribers;
         private final NonBlockingQueue<T> nonBlockingQueue;
 
-        public DaemonWorker(CopyOnWriteArrayList<Consumer<T>> subscribers, NonBlockingQueue<T> nonBlockingQueue) {
+        public DaemonWorker(CopyOnWriteArrayList<Subscriber<T>> subscribers, NonBlockingQueue<T> nonBlockingQueue) {
             this.subscribers = subscribers;
             this.nonBlockingQueue = nonBlockingQueue;
 
@@ -98,7 +60,7 @@ public class NonBlockingChannel<T> implements Channel<T> {
             while (true) {
                 if (!nonBlockingQueue.isEmpty()) {
                     Message<T> message = nonBlockingQueue.poll();
-                    subscribers.stream().forEach(consumer -> consumer.consume(message));
+                    subscribers.stream().forEach(subscriber -> subscriber.consume(message));
                 } else {
                     waiting();
                 }

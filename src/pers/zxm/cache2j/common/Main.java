@@ -17,8 +17,9 @@ public class Main {
     }
 
     public static void testPublishAndSubscribe() throws Exception{
-        Channel<String> channel = NonBlockingChannel.initChannel()
-                .subscribeOne(new DefaultConsumer())
+        NonBlockingPublisher<String> publisher = new NonBlockingPublisher<>();
+        Binding<String> binding = new Binding<>(publisher).subcribe(new DefaultSubscriber());
+        Channel<String> channel = NonBlockingChannel.initChannel(binding)
                 .enable();
 
         for (int i = 0; i < 100; i++) {
@@ -26,8 +27,8 @@ public class Main {
             message.setTag("test");
             message.setTimestamp(System.currentTimeMillis());
             message.setPayload("test publish message "+ i);
-            channel.publish(message);
 
+            publisher.publish(message);
             Thread.sleep((long)(Math.random()*1000));
         }
     }
