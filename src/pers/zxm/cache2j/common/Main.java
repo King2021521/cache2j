@@ -16,20 +16,21 @@ public class Main {
         testPublishAndSubscribe();
     }
 
-    public static void testPublishAndSubscribe() throws Exception{
+    public static void testPublishAndSubscribe() throws Exception {
         NonBlockingPublisher<String> publisher = new NonBlockingPublisher<>();
         Binding<String> binding = new Binding<>(publisher).subcribe(new DefaultSubscriber());
         Channel<String> channel = NonBlockingChannel.initChannel(binding)
+                .workType(WorkType.BALANCE)
                 .enable();
 
         for (int i = 0; i < 100; i++) {
             Message<String> message = new Message<>();
             message.setTag("test");
             message.setTimestamp(System.currentTimeMillis());
-            message.setPayload("test publish message "+ i);
+            message.setPayload("test publish message " + i);
 
             publisher.publish(message);
-            Thread.sleep((long)(Math.random()*1000));
+            Thread.sleep((long) (Math.random() * 1000));
         }
     }
 

@@ -1,5 +1,6 @@
 package pers.zxm.cache2j.subscribe;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -12,6 +13,7 @@ public class NonBlockingChannel<T> implements Channel<T> {
     private final CopyOnWriteArrayList<Subscriber<T>> subscribers;
     private final NonBlockingQueue<T> nonBlockingQueue;
     private DaemonWorker<T> worker;
+    private WorkType workType;
 
     private NonBlockingChannel(Binding<T> binding) {
         this.subscribers = binding.getSubscribers();
@@ -22,8 +24,13 @@ public class NonBlockingChannel<T> implements Channel<T> {
         return new NonBlockingChannel(binding);
     }
 
+    public NonBlockingChannel<T> workType(WorkType type) {
+        this.workType = type;
+        return this;
+    }
+
     public NonBlockingChannel<T> enable() {
-        worker = new DaemonWorker<>(subscribers, nonBlockingQueue);
+        worker = this.workType == null ? new PollingDaemonWorker<>(subscribers, nonBlockingQueue) : instance(this.workType.type());
         worker.start();
         return this;
     }
@@ -36,46 +43,17 @@ public class NonBlockingChannel<T> implements Channel<T> {
         this.binding = binding;
     }
 
-    /**
-     * 后台任务
-     */
-    class DaemonWorker<T> implements Runnable {
-        private static final int WAITING_MILLS = 10;
-
-        private Thread workerThread;
-
-        private final CopyOnWriteArrayList<Subscriber<T>> subscribers;
-        private final NonBlockingQueue<T> nonBlockingQueue;
-
-        public DaemonWorker(CopyOnWriteArrayList<Subscriber<T>> subscribers, NonBlockingQueue<T> nonBlockingQueue) {
-            this.subscribers = subscribers;
-            this.nonBlockingQueue = nonBlockingQueue;
-
-            workerThread = new Thread(this, "DaemonWorker");
-            workerThread.setDaemon(true);
-        }
-
-        @Override
-        public void run() {
-            while (true) {
-                if (!nonBlockingQueue.isEmpty()) {
-                    Message<T> message = nonBlockingQueue.poll();
-                    subscribers.stream().forEach(subscriber -> subscriber.consume(message));
-                } else {
-                    waiting();
-                }
-            }
-        }
-
-        private void waiting() {
-            try {
-                Thread.sleep(WAITING_MILLS);
-            } catch (InterruptedException e) {
-            }
-        }
-
-        public void start() {
-            this.workerThread.start();
+    private <R extends DaemonWorker<T>> R instance(Class<R> type) {
+        try {
+            return type.getConstructor(CopyOnWriteArrayList.class, NonBlockingQueue.class).newInstance(this.subscribers, this.nonBlockingQueue);
+        } catch (InstantiationException e) {
+            return null;
+        } catch (IllegalAccessException e) {
+            return null;
+        } catch (InvocationTargetException e) {
+            return null;
+        } catch (NoSuchMethodException e) {
+            return null;
         }
     }
 
