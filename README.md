@@ -10,7 +10,7 @@
 
 `cache2j` VS `guava cache`：  
 1、底层实现：  
-`guava cache`底层所用的是拓展的`HashTable`，和`ConcurrentHashMap`十分相似，通过引入一个`Segment`数组，对`HashTable`进行分段，通过分离锁、`final`以及`volatile`的配合，实现了并发环境下的线程安全;缺点：底层实现采用的是jdk1.8以前`ConcurrentHashMap`的实现，性能没有得到优化。  
+`guava cache`底层所用的是拓展的`HashTable`，和`ConcurrentHashMap`十分相似，通过引入一个`Segment`数组，对`HashTable`进行分段，通过分离锁、`final`以及`volatile`的配合，实现了并发环境下的线程安全;缺点：底层实现是对对hashtable进行了扩展，类似jdk1.8以前`ConcurrentHashMap`的实现，性能没有得到优化。  
 `cache2j`底层采用`jdk`自带的`ConcurrentHashMap`；底层设计跟着`jdk`版本走，性能上可以得到优化（1.8版本以后取消了锁分段技术并引入了红黑树，性能得到极大的优化）。  
 
 2、淘汰策略实现  
