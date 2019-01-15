@@ -3,7 +3,7 @@ package pers.zxm.cache2j.core;
 import pers.zxm.cache2j.Stats;
 import pers.zxm.cache2j.common.Validator;
 import pers.zxm.cache2j.listener.CacheListener;
-import pers.zxm.cache2j.monitor.MonitorType;
+import pers.zxm.cache2j.cleanup.CleanupType;
 import pers.zxm.cache2j.persistence.ProcessorType;
 
 import java.util.Objects;
@@ -17,7 +17,7 @@ import java.util.Objects;
  */
 public final class CacheBuilder<K, V> {
     private CacheListener listener;
-    private MonitorType type;
+    private CleanupType type;
     private Stats stats;
 
     private ProcessorType processorType = ProcessorType.FOS;
@@ -65,7 +65,7 @@ public final class CacheBuilder<K, V> {
         return this;
     }
 
-    public CacheBuilder<K, V> monitor(MonitorType type) {
+    public CacheBuilder<K, V> monitor(CleanupType type) {
         this.type = type;
         return this;
     }
@@ -121,7 +121,7 @@ public final class CacheBuilder<K, V> {
         return listener;
     }
 
-    public MonitorType getType() {
+    public CleanupType getType() {
         return type;
     }
 

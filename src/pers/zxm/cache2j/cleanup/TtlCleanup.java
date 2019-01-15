@@ -1,36 +1,28 @@
-package pers.zxm.cache2j.monitor;
+package pers.zxm.cache2j.cleanup;
 
-import pers.zxm.cache2j.core.Cache;
 import pers.zxm.cache2j.core.CacheObject;
+import pers.zxm.cache2j.core.Cache;
 import pers.zxm.cache2j.listener.CacheListener;
 import pers.zxm.cache2j.listener.Payload;
 import pers.zxm.cache2j.persistence.MessageQueue;
 
-import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * A cache monitor base on maximum capacity{@link Cache}
- * 当缓存中对象的数量大于用户设置的某个阈值（maximum）时，内部执行淘汰缓存的线程开始执行淘汰数据，具体的策略是:
- * 根据缓存对象的LastAccessTime做排序，淘汰最近使用频率最低的 maximum*factor+totalSize-maximum个对象。
- * 即LRU淘汰策略
- * @param <K>
- * @param <V>
- * @author zxm
- * @since 2018-01-26
+ * A Thread that monitors an {@link Cache} and will remove
+ * elements that have passed the threshold.
  */
-public class LRUMonitor<K, V> implements Monitor, Runnable {
+public class TtlCleanup<K, V> implements ICleanup, Runnable {
     private final ReadWriteLock stateLock = new ReentrantReadWriteLock();
 
     /**
-     * the max capacity
+     * time to live time Milliseconds
      */
-    private int maximum;
+    private long ttl;
 
-    private double clearFactor;
     /**
      * Interval times Milliseconds
      */
@@ -46,23 +38,24 @@ public class LRUMonitor<K, V> implements Monitor, Runnable {
 
     private MessageQueue messageQueue;
 
-    public LRUMonitor(Cache<K, V> cache) {
+    /**
+     * Creates a new instance of cleanup.
+     */
+    public TtlCleanup(Cache<K, V> cache) {
         this.delegate = cache.getDelegate();
         this.listeners = cache.getListeners();
 
-        this.maximum = cache.getCacheBuilder().getMaximum();
-        this.clearFactor = cache.getCacheBuilder().getFactor();
+        this.ttl = cache.getCacheBuilder().getTtl();
         this.expirationIntervalMillis = cache.getCacheBuilder().getInterval();
 
         this.messageQueue = cache.getQueue();
 
-        workerThread = new Thread(this, "CacheCapMonitor");
+        workerThread = new Thread(this, "CacheTtlMonitor");
         workerThread.setDaemon(true);
 
         this.start();
     }
 
-    @Override
     public void run() {
         while (running) {
             processMonitor();
@@ -76,30 +69,26 @@ public class LRUMonitor<K, V> implements Monitor, Runnable {
 
     @Override
     public void processMonitor() {
-        int size = delegate.size();
+        long timeNow = System.currentTimeMillis();
 
-        if (size >= maximum) {
-            Map<Long, Object> sortMap = new TreeMap<>();
-            for (CacheObject<K, V> object : delegate.values()) {
-                sortMap.put(object.getLastAccessTime(), object.getKey());
+        for (CacheObject<K, V> o : delegate.values()) {
+
+            if (ttl <= 0) {
+                continue;
             }
 
-            Set<Long> keySet = sortMap.keySet();
-            Iterator<Long> it = keySet.iterator();
-            int count = 0;
-            int clearSize = (int) (maximum * clearFactor) + size - maximum;
-            while ((count < clearSize) && it.hasNext()) {
-                Object v = sortMap.get(it.next());
+            long timeIdle = timeNow - o.getInitializationTime();
+
+            if (timeIdle >= ttl) {
+                delegate.remove(o.getKey());
+
+                if(this.messageQueue != null){
+                    messageQueue.remove(o.getKey());
+                }
 
                 for (CacheListener<K, V> listener : listeners) {
-                    listener.callback(new Payload<>((K) v,delegate.get(v).getValue(),delegate.get(v).getInitializationTime()));
+                    listener.callback(new Payload<>(o.getKey(), o.getValue(), o.getInitializationTime()));
                 }
-
-                delegate.remove(v);
-                if(this.messageQueue != null){
-                    this.messageQueue.remove(v);
-                }
-                count++;
             }
         }
     }
@@ -161,41 +150,31 @@ public class LRUMonitor<K, V> implements Monitor, Runnable {
         }
     }
 
-    public double getClearFactor() {
+    /**
+     * Returns the Time-to-live value.
+     *
+     * @return The time-to-live (Milliseconds)
+     */
+    public long getTimeToLive() {
         stateLock.readLock().lock();
 
         try {
-            return clearFactor;
+            return ttl;
         } finally {
             stateLock.readLock().unlock();
         }
     }
 
-    public void setClearFactor(double clearFactor) {
+    /**
+     * Update the value for the time-to-live
+     *
+     * @param ttl The time-to-live (Milliseconds)
+     */
+    public void setTimeToLive(long ttl) {
         stateLock.writeLock().lock();
 
         try {
-            this.clearFactor = clearFactor;
-        } finally {
-            stateLock.writeLock().unlock();
-        }
-    }
-
-    public int getMaximum() {
-        stateLock.readLock().lock();
-
-        try {
-            return maximum;
-        } finally {
-            stateLock.readLock().unlock();
-        }
-    }
-
-    public void setMaximum(int maximum) {
-        stateLock.writeLock().lock();
-
-        try {
-            this.maximum = maximum;
+            this.ttl = ttl;
         } finally {
             stateLock.writeLock().unlock();
         }
@@ -232,5 +211,4 @@ public class LRUMonitor<K, V> implements Monitor, Runnable {
             stateLock.writeLock().unlock();
         }
     }
-
 }

@@ -3,7 +3,7 @@ package pers.zxm.cache2j.core;
 import pers.zxm.cache2j.Logger;
 import pers.zxm.cache2j.listener.CacheListener;
 import pers.zxm.cache2j.listener.Payload;
-import pers.zxm.cache2j.monitor.Monitor;
+import pers.zxm.cache2j.cleanup.ICleanup;
 import pers.zxm.cache2j.LoadingFailException;
 import pers.zxm.cache2j.Stats;
 import pers.zxm.cache2j.UnCheckNullException;
@@ -23,7 +23,7 @@ public class Cache<K, V> extends AbstractCache<K, V> {
 
     private final ReentrantLock lock = new ReentrantLock();
     private final CopyOnWriteArrayList<CacheListener<K, V>> listeners;
-    private Monitor monitor;
+    private ICleanup ICleanup;
     private CacheLoader<? super K, V> loader;
     private Stats stats;
 
@@ -77,7 +77,7 @@ public class Cache<K, V> extends AbstractCache<K, V> {
             }
         }
 
-        this.monitor = builder.getType() == null ? null : newInstance(builder.getType().getType());
+        this.ICleanup = builder.getType() == null ? null : newInstance(builder.getType().getType());
     }
 
     private void loading(Map bak) {
@@ -145,7 +145,7 @@ public class Cache<K, V> extends AbstractCache<K, V> {
         } catch (IllegalArgumentException e) {
             throw e;
         } finally {
-            if (this.monitor == null) {
+            if (this.ICleanup == null) {
                 this.cleanup();
             }
         }
@@ -179,8 +179,8 @@ public class Cache<K, V> extends AbstractCache<K, V> {
         listeners.remove(listener);
     }
 
-    public Monitor getMonitor() {
-        return monitor;
+    public ICleanup getICleanup() {
+        return ICleanup;
     }
 
     public CacheBuilder<? super K, ? super V> getCacheBuilder() {
@@ -213,7 +213,7 @@ public class Cache<K, V> extends AbstractCache<K, V> {
         return delegate.equals(obj);
     }
 
-    private <T extends Monitor> T newInstance(Class<T> type) {
+    private <T extends ICleanup> T newInstance(Class<T> type) {
         return reflect(type);
     }
 

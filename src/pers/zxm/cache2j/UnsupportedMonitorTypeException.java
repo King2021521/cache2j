@@ -1,7 +1,7 @@
 package pers.zxm.cache2j;
 
 /**
- * monitor type unsupported exception
+ * cleanup type unsupported exception
  * @author zxm
  */
 public class UnsupportedMonitorTypeException extends RuntimeException {

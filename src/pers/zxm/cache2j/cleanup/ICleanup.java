@@ -1,9 +1,9 @@
-package pers.zxm.cache2j.monitor;
+package pers.zxm.cache2j.cleanup;
 
 /**
  * 缓存淘汰监控器
  */
-public interface Monitor {
+public interface ICleanup {
     void processMonitor();
 
     void start();
