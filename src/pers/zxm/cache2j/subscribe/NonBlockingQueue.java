@@ -1,6 +1,6 @@
 package pers.zxm.cache2j.subscribe;
 
-import pers.zxm.cache2j.common.Assert;
+import pers.zxm.cache2j.support.Assert;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 

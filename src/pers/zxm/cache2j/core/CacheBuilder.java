@@ -1,7 +1,7 @@
 package pers.zxm.cache2j.core;
 
 import pers.zxm.cache2j.Stats;
-import pers.zxm.cache2j.common.Validator;
+import pers.zxm.cache2j.support.Validator;
 import pers.zxm.cache2j.listener.CacheListener;
 import pers.zxm.cache2j.cleanup.CleanupType;
 import pers.zxm.cache2j.persistence.ProcessorType;
