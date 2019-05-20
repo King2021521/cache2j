@@ -40,6 +40,10 @@ public class Cache<K, V> extends AbstractCache<K, V> {
         this(new ConcurrentHashMap<>(), new CopyOnWriteArrayList<>(), builder, loader);
     }
 
+    public Cache(CacheBuilder<? super K, ? super V> builder) {
+        this(builder, null);
+    }
+
     private Cache(ConcurrentHashMap<K, CacheObject<K, V>> delegate,
                   CopyOnWriteArrayList<CacheListener<K, V>> cacheListeners,
                   CacheBuilder<? super K, ? super V> builder,

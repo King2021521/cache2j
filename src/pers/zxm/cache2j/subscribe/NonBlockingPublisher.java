@@ -1,7 +1,5 @@
 package pers.zxm.cache2j.subscribe;
 
-import pers.zxm.cache2j.support.Assert;
-
 import java.util.UUID;
 
 /**
@@ -11,13 +9,13 @@ import java.util.UUID;
  */
 public class NonBlockingPublisher<T> extends Publisher<T> {
 
-    public NonBlockingPublisher(){
+    public NonBlockingPublisher() {
         super.nonBlockingQueue = new NonBlockingQueue<>();
     }
 
     @Override
     public boolean publish(Message<T> message) {
-        if (Assert.notNull(message)) {
+        if (message != null) {
             if (null == message.getMessageId()) {
                 message.setMessageId(createMessageId());
             }
@@ -27,7 +25,7 @@ public class NonBlockingPublisher<T> extends Publisher<T> {
         return false;
     }
 
-    private String createMessageId(){
+    private String createMessageId() {
         return UUID.randomUUID().toString().replace("-", "");
     }
 }

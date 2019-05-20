@@ -1,20 +1,18 @@
-package pers.zxm.cache2j.support;
+package pers.zxm.cache2j;
 
-import pers.zxm.cache2j.Logger;
 import pers.zxm.cache2j.core.Cache;
 import pers.zxm.cache2j.core.CacheLoader;
 import pers.zxm.cache2j.listener.DefaultListener;
 import pers.zxm.cache2j.cleanup.CleanupType;
 import pers.zxm.cache2j.core.CacheBuilder;
-import pers.zxm.cache2j.persistence.ProcessorType;
 import pers.zxm.cache2j.subscribe.*;
 
 public class Main {
     public static Logger logger = Logger.newInstance(Main.class);
 
     public static void main(String[] args) throws Exception {
-        //testCache();
-        testPublishAndSubscribe();
+        testCache();
+        //testPublishAndSubscribe();
     }
 
     public static void testPublishAndSubscribe() throws Exception {
@@ -40,19 +38,22 @@ public class Main {
                 .listener(new DefaultListener())
                 .factor(0.1)
                 .interval(1000)
-                .ttl(5000)
+                .ttl(50000)
                 .maximum(1000)
                 .monitor(CleanupType.LRU)
                 .stats()
-                .flushProcessor(ProcessorType.FOS)
-                .path("D:\\cache2j.txt")
-                .enableFlushDsk(true)
+                //.flushProcessor(ProcessorType.FOS)
+                //.path("D:\\cache2j.txt")
+                .enableFlushDsk(false)
                 .build(new CacheLoader<String, Object>() {
                     @Override
                     public Object load(String key) {
                         return key + "-aaaa";
                     }
                 });
+
+        cache.put("zhangxiaomin","51tiangou.com");
+        System.out.println(cache.get("zhangxiaomin"));
     }
 
 }

@@ -56,7 +56,7 @@ public class LRUCleanup<K, V> implements ICleanup, Runnable {
 
         this.messageQueue = cache.getQueue();
 
-        workerThread = new Thread(this, "CacheCapMonitor");
+        workerThread = new Thread(this, "CacheCapCleanup");
         workerThread.setDaemon(true);
 
         this.start();

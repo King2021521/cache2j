@@ -1,7 +1,5 @@
 package pers.zxm.cache2j.subscribe;
 
-import pers.zxm.cache2j.support.Assert;
-
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -13,26 +11,26 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class NonBlockingQueue<R> {
     private final ConcurrentLinkedQueue<Message<R>> concurrentLinkedQueue;
 
-    public NonBlockingQueue(){
+    public NonBlockingQueue() {
         this.concurrentLinkedQueue = new ConcurrentLinkedQueue<>();
     }
 
-    public boolean add(Message<R> element){
-        if(Assert.notNull(element)){
+    public boolean add(Message<R> element) {
+        if (element != null) {
             return concurrentLinkedQueue.add(element);
         }
         return false;
     }
 
-    public Message<R> poll(){
+    public Message<R> poll() {
         return concurrentLinkedQueue.poll();
     }
 
-    public Message<R> peek(){
+    public Message<R> peek() {
         return concurrentLinkedQueue.peek();
     }
 
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         return concurrentLinkedQueue.isEmpty();
     }
 }
