@@ -22,6 +22,7 @@ public class Cache<K, V> extends AbstractCache<K, V> {
     private static Logger logger = Logger.newInstance(Cache.class);
 
     private final ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock reentrantLock = new ReentrantLock();
     private final CopyOnWriteArrayList<CacheListener<K, V>> listeners;
     private ICleanup ICleanup;
     private CacheLoader<? super K, V> loader;
@@ -34,6 +35,8 @@ public class Cache<K, V> extends AbstractCache<K, V> {
     private Long interval;
     private Integer maximum;
     private Double factor;
+    private boolean enableBlockingLoad;
+    private Long blockTimeout;
     private CacheBuilder<? super K, ? super V> cacheBuilder;
 
     public Cache(CacheBuilder<? super K, ? super V> builder, CacheLoader<? super K, V> loader) {
@@ -59,6 +62,9 @@ public class Cache<K, V> extends AbstractCache<K, V> {
         this.maximum = builder.getMaximum();
         this.factor = builder.getFactor();
 
+        this.enableBlockingLoad = builder.getEnableBlockingLoad();
+        this.blockTimeout = builder.getBlockTimeout();
+
         initCache(builder);
     }
 
@@ -77,14 +83,14 @@ public class Cache<K, V> extends AbstractCache<K, V> {
 
             Map bak = LoadProcessor.read(builder.getPath());
             if (null != bak && !bak.isEmpty()) {
-                loading(bak);
+                recovery(bak);
             }
         }
 
         this.ICleanup = builder.getType() == null ? null : newInstance(builder.getType().getType());
     }
 
-    private void loading(Map bak) {
+    private void recovery(Map bak) {
         Set<K> keys = bak.keySet();
         for (K key : keys) {
             doPut(key, (V) bak.get(key));
@@ -92,7 +98,7 @@ public class Cache<K, V> extends AbstractCache<K, V> {
     }
 
     /**
-     * throw exception when value is null
+     * uncheck null when value is null
      *
      * @param key
      * @return V
@@ -100,8 +106,92 @@ public class Cache<K, V> extends AbstractCache<K, V> {
      * @throws LoadingFailException
      */
     public V get(Object key) throws LoadingFailException {
-        CacheObject<K, V> object = delegate.get(key);
+        return doGet(key);
+    }
 
+    /**
+     * throw exception when value is null
+     *
+     * @param key
+     * @return
+     */
+    public V getWithCheck(Object key) {
+        V value = doGet(key);
+        if (null == value) {
+            throw new UnCheckNullException("cache object value can not is null");
+        }
+        return value;
+    }
+
+    private V doGet(Object key) {
+        CacheObject<K, V> object = delegate.get(key);
+        V value = beforeLoading(object);
+        if (value != null) {
+            return value;
+        }
+
+        if (loader != null) {
+            return enableBlockingLoad == true ? blockingLoad(key) : load(key);
+        }
+        return null;
+    }
+
+    /**
+     * 阻塞式加载缓存，当缓存过期瞬间，大量线程并发去从db加载数据，为了防止穿透，此处加载时使用阻塞机制，仅允许一个线程穿透到db，其余线程保持阻塞，
+     * 当阻塞时间超过blockTimeout时，线程会抛出请求超时的异常。
+     *
+     * @param key
+     * @return
+     */
+    private V blockingLoad(Object key) {
+        if (reentrantLock.isLocked()) {
+            long start = System.currentTimeMillis();
+            while (reentrantLock.isLocked()) {
+                if (!reentrantLock.isLocked()) {
+                    break;
+                }
+                if (System.currentTimeMillis() - start > blockTimeout) {
+                    throw new LoadingFailException("loading value from data source timeout");
+                }
+            }
+        }
+        reentrantLock.lock();
+        try {
+            //双重检查
+            CacheObject<K, V> object = delegate.get(key);
+            V value = beforeLoading(object);
+            if (value != null) {
+                return value;
+            }
+            return load(key);
+        } finally {
+            reentrantLock.unlock();
+        }
+    }
+
+    /**
+     * load value from data source,no blocking!
+     *
+     * @param key
+     * @return
+     */
+    private V load(Object key) {
+        V v;
+        try {
+            v = loader.load((K) key);
+        } catch (Exception e) {
+            throw new LoadingFailException("unable to load cache object");
+        }
+
+        resolveStats(v);
+        if (v != null) {
+            afterLoading(key, v);
+        }
+
+        return v;
+    }
+
+    private V beforeLoading(CacheObject<K, V> object) {
         if (object != null) {
             if (stats != null) {
                 stats.hit();
@@ -109,30 +199,25 @@ public class Cache<K, V> extends AbstractCache<K, V> {
 
             object.setLastAccessTime(System.currentTimeMillis());
             return object.getValue();
-        } else if (loader != null) {
-            V v;
-            try {
-                v = loader.load((K) key);
-            } catch (Exception e) {
-                throw new LoadingFailException("unable to load cache object");
-            }
-
-            if (stats != null) {
-                if (v == null) {
-                    stats.miss();
-                } else {
-                    stats.reload();
-                }
-            }
-
-            doPut((K) key, v);
-
-            object = delegate.get(key);
-            object.setLastAccessTime(System.currentTimeMillis());
-            return object.getValue();
         }
+        return null;
+    }
 
-        throw new UnCheckNullException("cache object value can not is null");
+    private V afterLoading(Object key, V v) {
+        doPut((K) key, v);
+        CacheObject<K, V> object = delegate.get(key);
+        object.setLastAccessTime(System.currentTimeMillis());
+        return object.getValue();
+    }
+
+    private void resolveStats(V v) {
+        if (stats != null) {
+            if (v == null) {
+                stats.miss();
+            } else {
+                stats.reload();
+            }
+        }
     }
 
     /**

@@ -24,6 +24,9 @@ public final class CacheBuilder<K, V> {
     private Boolean enableFlushDisk = false;
     private String path;
 
+    private boolean enableBlockingLoad = false;
+    private long blockTimeout;
+
     long ttl = Long.MAX_VALUE;
     long interval = Long.MAX_VALUE;
     int maximum = Integer.MAX_VALUE;
@@ -95,6 +98,20 @@ public final class CacheBuilder<K, V> {
         return this;
     }
 
+    public CacheBuilder<K, V> enableBlockingLoad(long timeout) {
+        this.enableBlockingLoad = true;
+        if(timeout>0){
+            this.blockTimeout = timeout;
+        }
+        return this;
+    }
+
+    public CacheBuilder<K, V> enableBlockingLoad() {
+        this.enableBlockingLoad = true;
+        this.blockTimeout = Long.MAX_VALUE;
+        return this;
+    }
+
     public Boolean getEnableFlushDisk(){
         return this.enableFlushDisk;
     }
@@ -143,6 +160,14 @@ public final class CacheBuilder<K, V> {
 
     public Stats getStats() {
         return stats;
+    }
+
+    public boolean getEnableBlockingLoad(){
+        return this.enableBlockingLoad;
+    }
+
+    public Long getBlockTimeout(){
+        return blockTimeout;
     }
 
     @Override

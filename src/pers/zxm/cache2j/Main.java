@@ -11,8 +11,15 @@ public class Main {
     public static Logger logger = Logger.newInstance(Main.class);
 
     public static void main(String[] args) throws Exception {
-        testCache();
-        //testPublishAndSubscribe();
+        Cache<String, Object> cache = testCache();
+
+        T1 t1 = new T1(cache,"java");
+        T1 t2 = new T1(cache,"java");
+        t2.start();
+        t1.start();
+        Thread.sleep(2*1000);
+        System.out.println(cache.get("java"));
+        System.out.println(cache.stats());
     }
 
     public static void testPublishAndSubscribe() throws Exception {
@@ -33,7 +40,7 @@ public class Main {
         }
     }
 
-    public static void testCache() throws Exception {
+    public static Cache<String, Object> testCache() throws Exception {
         Cache<String, Object> cache = CacheBuilder.newBuilder()
                 .listener(new DefaultListener())
                 .factor(0.1)
@@ -45,15 +52,26 @@ public class Main {
                 //.flushProcessor(ProcessorType.FOS)
                 //.path("D:\\cache2j.txt")
                 .enableFlushDsk(false)
-                .build(new CacheLoader<String, Object>() {
-                    @Override
-                    public Object load(String key) {
-                        return key + "-aaaa";
-                    }
+                .enableBlockingLoad(1000)
+                .build(key -> {
+                    Thread.sleep(800);
+                    return key+"--"+Thread.currentThread().getName();
                 });
-
-        cache.put("zhangxiaomin","51tiangou.com");
-        System.out.println(cache.get("zhangxiaomin"));
+        return cache;
     }
 
+    static class T1 extends Thread{
+        private Cache<String, Object> cache;
+        private Object key;
+
+        T1(Cache<String, Object> cache,Object key){
+            this.cache = cache;
+            this.key = key;
+        }
+
+        @Override
+        public void run() {
+            System.out.println(cache.get(key));
+        }
+    }
 }

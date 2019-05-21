@@ -7,6 +7,6 @@ package pers.zxm.cache2j.core;
  * @author zxm
  * @since 2018-01-25
  */
-public abstract class CacheLoader<K,V> {
-    public abstract V load(K key);
+public interface CacheLoader<K,V> {
+    V load(K key) throws InterruptedException;
 }
