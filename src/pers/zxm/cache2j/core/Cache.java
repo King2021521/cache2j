@@ -141,20 +141,11 @@ public class Cache<K, V> extends AbstractCache<K, V> {
      * 当阻塞时间超过blockTimeout时，线程会抛出请求超时的异常。
      *
      * @param key
+     * @exception LoadingFailException
      * @return
      */
     private V blockingLoad(Object key) {
-        if (reentrantLock.isLocked()) {
-            long start = System.currentTimeMillis();
-            while (reentrantLock.isLocked()) {
-                if (!reentrantLock.isLocked()) {
-                    break;
-                }
-                if (System.currentTimeMillis() - start > blockTimeout) {
-                    throw new LoadingFailException("loading value from data source timeout");
-                }
-            }
-        }
+        lockPolling();
         reentrantLock.lock();
         try {
             //双重检查
@@ -166,6 +157,31 @@ public class Cache<K, V> extends AbstractCache<K, V> {
             return load(key);
         } finally {
             reentrantLock.unlock();
+        }
+    }
+
+    /**
+     * 轮询锁
+     */
+    private void lockPolling(){
+        if (reentrantLock.isLocked()) {
+            long start = System.currentTimeMillis();
+            while (reentrantLock.isLocked()) {
+                if (!reentrantLock.isLocked()) {
+                    break;
+                }
+                checkTimeout(start);
+            }
+        }
+    }
+
+    /**
+     * 判断是否超时
+     * @param start
+     */
+    private void checkTimeout(long start){
+        if (System.currentTimeMillis() - start > blockTimeout) {
+            throw new LoadingFailException("loading value from data source timeout");
         }
     }
 
