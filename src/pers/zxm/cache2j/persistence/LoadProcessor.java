@@ -1,6 +1,6 @@
 package pers.zxm.cache2j.persistence;
 
-import pers.zxm.cache2j.Logger;
+import pers.zxm.cache2j.support.Logger;
 
 import java.io.*;
 import java.util.Map;

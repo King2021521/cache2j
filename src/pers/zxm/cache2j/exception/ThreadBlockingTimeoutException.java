@@ -1,4 +1,6 @@
-package pers.zxm.cache2j;
+package pers.zxm.cache2j.exception;
+
+import pers.zxm.cache2j.exception.LoadingFailException;
 
 /**
  * @Author

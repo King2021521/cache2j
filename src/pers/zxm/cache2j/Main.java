@@ -1,11 +1,11 @@
 package pers.zxm.cache2j;
 
 import pers.zxm.cache2j.core.Cache;
-import pers.zxm.cache2j.core.CacheLoader;
 import pers.zxm.cache2j.listener.DefaultListener;
 import pers.zxm.cache2j.cleanup.CleanupType;
 import pers.zxm.cache2j.core.CacheBuilder;
 import pers.zxm.cache2j.subscribe.*;
+import pers.zxm.cache2j.support.Logger;
 
 public class Main {
     public static Logger logger = Logger.newInstance(Main.class);

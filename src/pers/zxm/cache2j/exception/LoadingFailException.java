@@ -1,4 +1,4 @@
-package pers.zxm.cache2j;
+package pers.zxm.cache2j.exception;
 
 /**
  * An exception occurred when cacheLoader working

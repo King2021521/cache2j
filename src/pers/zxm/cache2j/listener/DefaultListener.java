@@ -1,6 +1,6 @@
 package pers.zxm.cache2j.listener;
 
-import pers.zxm.cache2j.Logger;
+import pers.zxm.cache2j.support.Logger;
 
 public class DefaultListener implements CacheListener<String,Object> {
     private static Logger logger = Logger.newInstance(DefaultListener.class);
