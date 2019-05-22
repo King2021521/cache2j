@@ -15,7 +15,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * A Thread that monitors an {@link Cache} and will remove
  * elements that have passed the threshold.
  */
-public class TtlCleanup<K, V> implements ICleanup, Runnable {
+public class TTLCleanup<K, V> implements ICleanup, Runnable {
     private final ReadWriteLock stateLock = new ReentrantReadWriteLock();
 
     /**
@@ -41,7 +41,7 @@ public class TtlCleanup<K, V> implements ICleanup, Runnable {
     /**
      * Creates a new instance of cleanup.
      */
-    public TtlCleanup(Cache<K, V> cache) {
+    public TTLCleanup(Cache<K, V> cache) {
         this.delegate = cache.getDelegate();
         this.listeners = cache.getListeners();
 

@@ -1,7 +1,7 @@
 package pers.zxm.cache2j.cleanup;
 
 public enum CleanupType {
-    TTL(TtlCleanup.class),
+    TTL(TTLCleanup.class),
 
     LRU(LRUCleanup.class);
 
