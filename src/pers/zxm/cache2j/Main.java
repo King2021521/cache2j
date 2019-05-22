@@ -54,7 +54,7 @@ public class Main {
                 .enableFlushDsk(false)
                 .enableBlockingLoad(1000)
                 .build(key -> {
-                    Thread.sleep(800);
+                    Thread.sleep(5000);
                     return key+"--"+Thread.currentThread().getName();
                 });
         return cache;

@@ -1,12 +1,9 @@
 package pers.zxm.cache2j.core;
 
-import pers.zxm.cache2j.Logger;
+import pers.zxm.cache2j.*;
 import pers.zxm.cache2j.listener.CacheListener;
 import pers.zxm.cache2j.listener.Payload;
 import pers.zxm.cache2j.cleanup.ICleanup;
-import pers.zxm.cache2j.LoadingFailException;
-import pers.zxm.cache2j.Stats;
-import pers.zxm.cache2j.UnCheckNullException;
 import pers.zxm.cache2j.persistence.FlushDiskProcessor;
 import pers.zxm.cache2j.persistence.LoadProcessor;
 import pers.zxm.cache2j.persistence.MessageQueue;
@@ -147,6 +144,7 @@ public class Cache<K, V> extends AbstractCache<K, V> {
     private V blockingLoad(Object key) {
         lockPolling();
         reentrantLock.lock();
+
         try {
             //双重检查
             CacheObject<K, V> object = delegate.get(key);
@@ -181,7 +179,7 @@ public class Cache<K, V> extends AbstractCache<K, V> {
      */
     private void checkTimeout(long start){
         if (System.currentTimeMillis() - start > blockTimeout) {
-            throw new LoadingFailException("loading value from data source timeout");
+            throw new ThreadBlockingTimeoutException("current thread request timeout");
         }
     }
 
