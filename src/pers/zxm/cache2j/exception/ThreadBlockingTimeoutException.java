@@ -1,7 +1,5 @@
 package pers.zxm.cache2j.exception;
 
-import pers.zxm.cache2j.exception.LoadingFailException;
-
 /**
  * @Author
  * @Description 线程阻塞超时异常
