@@ -93,9 +93,7 @@ public class Cache<K, V> extends AbstractCache<K, V> {
 
     private void recovery(Map bak) {
         Set<K> keys = bak.keySet();
-        for (K key : keys) {
-            doPut(key, (V) bak.get(key));
-        }
+        keys.forEach(key->doPut(key, (V) bak.get(key)));
     }
 
     /**
